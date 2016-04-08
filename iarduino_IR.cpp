@@ -32,6 +32,7 @@ bool		iarduino_IR::check(bool i){
 				IR_mass_PACK[IR_var_I][IR_var_J]=IRVVC.IR_mass_PACK[IR_var_I][IR_var_J];				//	сохраняем данные пакетов
 			}	IR_uint_PACK_LEN[IR_var_I]=IRVVC.IR_uint_PACK_LEN[IR_var_I];							//	сохраняем длину  пакетов
 			}
+			key_press=IRVVC.IR_flag_KEY_PRESS?0:1; IRVVC.IR_flag_KEY_PRESS=1;
 //			запрещаем повторное чтение уже полученного пакета
 			if(i){if(IRVVC.IR_uint_READ_STATUS==6){IRVVC.IR_flag_CHECK=1;} if(IRVVC.IR_flag_READ_REPEAT){IRVVC.IR_flag_READ_REPEAT=0;}else{return false;}}else{IRVVC.IR_flag_CHECK=1;}	//	устанавливаем однократный вывод результата о пакетах
 //			сброс установленного протокола
@@ -334,7 +335,7 @@ void		iarduino_IR::IR_func_TIMER2_SETREG(uint32_t i){i*=1000;
 			OCR2A	= (uint8_t)(F_CPU/(IR_var_I*i))-1;													//	значение регистра сравнения OCR2A настраивается под частоту переполнения счётного регистра TCNT2=i.  i=F_CPU/(предделитель*(OCR2A+1)) => OCR2A = (F_CPU/(предделитель*i))-1
 			TIMSK2	= 0<<OCIE2B	| 1<<OCIE2A	| 0<<TOIE2;													//	разрешаем прерывание по совпадению счётного регистра TCNT2 и регистра сравнения OCR2A
 			SREG	= 1<<7;																				//	устанавливаем флаг глобального разрешения прерываний 
-			delay(1); IRVVC.IR_pins_READ=IRVVC.IR_pins_SEND=IRVVC.IR_uint_READ_STATUS=IRVVC.IR_pins_SEND_STATUS=IRVVC.IR_flag_CHECK=IRVVC.IR_flag_READ_REPEAT=IRVVC.IR_flag_PULSE=IRVVC.IR_uint_PACK_LENGTH=IRVVC.IR_uint_CALL_PAUSE=IRVVC.IR_uint_PACK_PAUSE=IRVVC.IR_uint_PACK_INDEX=IRVVC.IR_uint_PACK_NUM=IRVVC.IR_uint_PACK_LEN[0]=IRVVC.IR_uint_PACK_LEN[1]=0;
+			delay(1); IRVVC.IR_pins_READ=IRVVC.IR_pins_SEND=IRVVC.IR_uint_READ_STATUS=IRVVC.IR_pins_SEND_STATUS=IRVVC.IR_flag_CHECK=IRVVC.IR_flag_KEY_PRESS=IRVVC.IR_flag_READ_REPEAT=IRVVC.IR_flag_PULSE=IRVVC.IR_uint_PACK_LENGTH=IRVVC.IR_uint_CALL_PAUSE=IRVVC.IR_uint_PACK_PAUSE=IRVVC.IR_uint_PACK_INDEX=IRVVC.IR_uint_PACK_NUM=IRVVC.IR_uint_PACK_LEN[0]=IRVVC.IR_uint_PACK_LEN[1]=0;
 }
 
 /* ISR */	ISR(TIMER2_COMPA_vect){
@@ -351,7 +352,7 @@ void		iarduino_IR::IR_func_TIMER2_SETREG(uint32_t i){i*=1000;
 						IRVVC.IR_uint_PACK_INDEX	= 0;												//	устанавливаем индекс в массиве данных в 0 - первый бит пакета
 						IRVVC.IR_uint_PACK_LENGTH	= 0;												//	устанавливаем длительность текущего импульса в 0
 						if(IRVVC.IR_uint_READ_STATUS==6){IRVVC.IR_uint_READ_STATUS=0;}					//	устанавливаем статус 0, считаем что после паузы в 200мс нажата новая кнопка пульта
-						if(IRVVC.IR_uint_READ_STATUS==0){IRVVC.IR_uint_PACK_NUM=0; IRVVC.IR_uint_PACK_LEN[0]=0; IRVVC.IR_uint_PACK_LEN[1]=0; IRVVC.IR_flag_CHECK=0; IRVVC.IR_flag_READ_REPEAT=1;}else	//	устанавливаем номер массива в 0 - первый пакет, обнуляем длину первого и второго пакета
+						if(IRVVC.IR_uint_READ_STATUS==0){IRVVC.IR_uint_PACK_NUM=0; IRVVC.IR_uint_PACK_LEN[0]=0; IRVVC.IR_uint_PACK_LEN[1]=0; IRVVC.IR_flag_CHECK=0; IRVVC.IR_flag_KEY_PRESS=0; IRVVC.IR_flag_READ_REPEAT=1;}else	//	устанавливаем номер массива в 0 - первый пакет, обнуляем длину первого и второго пакета
 						if(IRVVC.IR_uint_READ_STATUS==2){IRVVC.IR_uint_PACK_NUM=1;}						//	устанавливаем номер массива в 1 - второй пакет
 						if(IRVVC.IR_uint_READ_STATUS<5){IRVVC.IR_uint_READ_STATUS++;}					//	устанавливаем очередной статус состояния приёма
 					}else{																				//	и импульс не появляется
